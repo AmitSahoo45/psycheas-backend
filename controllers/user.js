@@ -20,10 +20,16 @@ const SignIn = async (req, res) => {
 
         const token = jwt.sign(
             { email: oldUser.email, id: oldUser._id }
-            , process.env.SECRET,
+            , process.env.JWT_SECRET,
             { expiresIn: "15d" })
 
-        res.status(StatusCodes.OK).json({ result: oldUser, token })
+        res.status(StatusCodes.OK).json({
+            result: {
+                name: oldUser.name,
+                email: oldUser.email,
+                id: oldUser._id
+            }, token
+        })
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message })
     }
@@ -49,7 +55,7 @@ const SignUp = async (req, res) => {
 
         const token = jwt.sign(
             { email: result.email, id: result._id }
-            , process.env.SECRET,
+            , process.env.JWT_SECRET,
             { expiresIn: "15d" })
 
         res.status(StatusCodes.CREATED).json({
