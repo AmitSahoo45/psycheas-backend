@@ -3,7 +3,7 @@ require('dotenv').config()
 
 const auth = async (req, res, next) => {
     try {
-        console.log(req.headers)
+        console.log(req.headers.authorization)
         const authHeader = req.headers.authorization
 
         if (!authHeader || !authHeader.startsWith('Bearer '))
