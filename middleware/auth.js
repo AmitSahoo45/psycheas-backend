@@ -10,6 +10,8 @@ const auth = async (req, res, next) => {
             return res.status(401).json({ message: 'Authentication is required' })
         console.log('2')
         const token = authHeader.replace('Bearer ', '')
+        console.log(process.env.JWT_SECRET, 'JWT_SECRET')
+        console.log(token, 'token')
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
         console.log(decoded, 'decoded')
         console.log(token)
