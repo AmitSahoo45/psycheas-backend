@@ -19,13 +19,13 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-// const corsOptions = {
-//     origin: ['http://localhost:3000', 'https://chillmate.vercel.app'],
-//     credentials: true,
-//     optionSuccessStatus: 200
-// };
+const corsOptions = {
+    origin: ['http://localhost:3000', 'https://chillmate.vercel.app'],
+    credentials: true,
+    optionSuccessStatus: 200
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 const CONNECTION_URL = process.env.MONGO_URI
 const PORT = process.env.PORT || 5000;
