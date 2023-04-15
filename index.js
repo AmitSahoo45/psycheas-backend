@@ -5,7 +5,7 @@ const cors = require('cors');
 
 require('dotenv').config();
 
-const { UserRouter } = require('./routes')
+const { UserRouter, StorylineRouter } = require('./routes')
 
 const app = express();
 
@@ -35,6 +35,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', UserRouter);
+app.use('/storyline', StorylineRouter);
 
 mongoose.connect(CONNECTION_URL, {
     useNewUrlParser: true,

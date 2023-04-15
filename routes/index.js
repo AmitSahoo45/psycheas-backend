@@ -1,5 +1,7 @@
 const UserRouter = require('./user')
+const StorylineRouter = require('./storyline')
 
 module.exports = {
-    UserRouter
+    UserRouter,
+    StorylineRouter
 }
