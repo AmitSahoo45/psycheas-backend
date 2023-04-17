@@ -3,7 +3,6 @@ const SolvedModel = require('../models/solved')
 const AttemptModel = require('../models/attempts')
 
 const { StatusCodes } = require('http-status-codes');
-const { default: mongoose } = require('mongoose');
 
 const createWhodunitStoryline = async (req, res) => {
     try {
@@ -228,13 +227,43 @@ const getAllUserData = async (req, res) => {
     try {
         const attemptsByUser = await AttemptModel.aggregate([
             {
+                $lookup: {
+                    from: "users",
+                    localField: "User",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
                 $group: {
-                    _id: '$User',
-                    name: { $first: '$User.name' },
-                    attempts: { $push: '$$ROOT' }
+                    _id: "$User",
+                    name: { $first: "$user.name" },
+                    attempts: { $push: "$$ROOT" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    attempts: {
+                        $map: {
+                            input: "$attempts",
+                            as: "attempt",
+                            in: {
+                                _id: "$$attempt._id",
+                                User: "$$attempt.User",
+                                attemptNo: "$$attempt.attemptNo",
+                                timeTaken: "$$attempt.timeTaken",
+                                correct: "$$attempt.correct",
+                                accuracy: "$$attempt.accuracy",
+                                percentile: "$$attempt.percentile",
+                            }
+                        }
+                    }
                 }
             }
-        ])
+        ]);
+
 
         res.status(StatusCodes.OK).json({ attemptsByUser })
     } catch (error) {
