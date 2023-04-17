@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://chillmate.vercel.app'],
+    origin: ['http://localhost:3000', 'https://psycheas-frontend.vercel.app/'],
     credentials: true,
     optionSuccessStatus: 200
 };
