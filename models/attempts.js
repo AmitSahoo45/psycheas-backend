@@ -9,11 +9,11 @@ const AttemptSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Whodunit'
     },
-    attemptNo: [Number],
-    timeTaken: [Number],
-    correct: [Boolean],
-    accuracy: [Number],
-    percentile: [Number]
+    attemptNo: Number,
+    timeTaken: Number,
+    correct: Boolean,
+    accuracy: Number,
+    percentile: Number
 }, { timestamps: true })
 
 module.exports = mongoose.model('Attempt', AttemptSchema)

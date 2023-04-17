@@ -3,6 +3,7 @@ const SolvedModel = require('../models/solved')
 const AttemptModel = require('../models/attempts')
 
 const { StatusCodes } = require('http-status-codes');
+const { default: mongoose } = require('mongoose');
 
 const createWhodunitStoryline = async (req, res) => {
     try {
@@ -97,7 +98,7 @@ const RandomlySelectPuzzle = async (req, res) => {
                 // if solveddocx.solving.solved.length === total which means all puzzles have been solved
                 // then clear the solved array and start over again
 
-                if (solveddocx.solved.length === total) {
+                if (solveddocx.solved.length == total) {
                     solveddocx.solved = []
                     await solveddocx.save()
                 }
@@ -135,52 +136,33 @@ const CheckSolutionAndAccuracy = async (req, res) => {
         // qid is the puzzle _id
         const { isCorrect, time, qid } = req.body
         const { user: { id } } = req
+        console.log(isCorrect, time, qid)
+        const UserSolve = await SolvedModel.findOne({ User: id })
 
-        // const UserSolve = await SolvedModel.findOne({ User: id })
-        // UserSolve.solving = {
-        //     id: null,
-        //     timeTaken: 0,
-        //     exited: 0,
-        //     previosChosen: 0,
-        //     attemptedAt: Date.now()
-        // }
-        // UserSolve.solved.push({
-        //     id: qid,
-        //     timeTaken: time,
-        //     solved: isCorrect,
-        //     attemptedAt: Date.now()
-        // })
-        // await UserSolve.save()
+        UserSolve.solving = {
+            id: null,
+            timeTaken: 0,
+            exited: 0,
+            previosChosen: 0,
+            attemptedAt: Date.now()
+        }
 
-        await SolvedModel.findOneAndUpdate(
-            { User: id },
-            {
-                $set: {
-                    'solving.id': null,
-                    'solving.timeTaken': 0,
-                    'solving.exited': 0,
-                    'solving.previosChosen': 0,
-                    'solving.attemptedAt': Date.now()
-                },
-                $push: {
-                    solved: {
-                        id: qid,
-                        timeTaken: time,
-                        solved: isCorrect,
-                        attemptedAt: Date.now()
-                    }
-                }
-            })
+        UserSolve.solved.push({
+            puzzleId: qid,
+            timeTaken: time,
+            solved: isCorrect,
+            attemptedAt: Date.now()
+        })
+        await UserSolve.save()
 
-        console.log('cp2')
         // accuracy calculation
         const WIN_CREDIT = 0.5, LOSE_CREDIT = 0.1
         let accuracy = isCorrect ? WIN_CREDIT * time : LOSE_CREDIT * time
         const normalize = parseFloat((50 - ((accuracy - 0) / (300 - 0)) * (50 - 0) + 0).toFixed(2))
-        accuracy = isCorrect ? 50 + normalize : 50 - normalize
-        console.log('cp3')
+        accuracy = isCorrect ? 50 + normalize : normalize
+
         // percentile calculation
-        const previousAttempts = await SolvedModel.find({ solved: qid })
+        const previousAttempts = await AttemptModel.find({ Whodunit: qid })
         const percentile = (((previousAttempts.filter(attempt => attempt.timeTaken <= timeTaken).length + 1) / (previousAttempts.length + 1)).toFixed(2)) * 100
 
         const pp = await AttemptModel.create({
@@ -192,9 +174,13 @@ const CheckSolutionAndAccuracy = async (req, res) => {
             percentile,
             attemptNo: previousAttempts.length + 1
         })
-        console.log('cp4')
-        res.status(StatusCodes.OK).json({ UserSolve, pp })
+
+        res.status(StatusCodes.OK).json({
+            UserSolve, attempt: pp,
+            message: 'Puzzle solved successfully'
+        })
     } catch (error) {
+        console.log(error)
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message })
     }
 }
@@ -207,7 +193,7 @@ const getNextQuestion = async (req, res) => {
         const total = await whodunitModel.countDocuments()
         const solvedPuzzle = await SolvedModel.findOne({ User: id })
 
-        if (solvedPuzzle.solved.length === total) {
+        if (solvedPuzzle.solved.length == total) {
             solvedPuzzle.solved = []
             await solvedPuzzle.save()
         }
@@ -238,12 +224,30 @@ const getNextQuestion = async (req, res) => {
     }
 }
 
+const getAllUserData = async (req, res) => {
+    try {
+        const attemptsByUser = await AttemptModel.aggregate([
+            {
+                $group: {
+                    _id: '$User',
+                    name: { $first: '$User.name' },
+                    attempts: { $push: '$$ROOT' }
+                }
+            }
+        ])
+
+        res.status(StatusCodes.OK).json({ attemptsByUser })
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message })
+    }
+}
 
 module.exports = {
     createWhodunitStoryline,
     getAllWhodunitStorylines,
     RandomlySelectPuzzle,
     CheckSolutionAndAccuracy,
-    getNextQuestion
+    getNextQuestion,
+    getAllUserData
 }
 

@@ -6,7 +6,7 @@ const SolvedSchema = new mongoose.Schema({
         ref: 'User'
     },
     solved: [{
-        id: {
+        puzzleId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Whodunit'
         },
@@ -21,7 +21,7 @@ const SolvedSchema = new mongoose.Schema({
         attemptedAt: Date,
     }],
     solving: {
-        id: {
+        puzzleId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Whodunit'
         },
